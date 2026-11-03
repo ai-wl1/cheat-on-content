@@ -1,6 +1,6 @@
 ---
 name: cheat-bump
-description: 提议并执行 rubric 或 bucket 升级。两种模式：**完整 rubric bump**（最高风险动作，5 步强制 + 跨模型审核）和 **--bucket-only 轻量重校**（只换 bucket 边界，不动 rubric 公式）。**Phase 2 强制走 cheat-score-blind sub-agent 给校准池重打分**——不接受 self-scored fallback。触发词："升级 rubric"/"bump rubric"/"更新公式"/"我想加一个维度"/"调整权重"/"重校桶"/"recalibrate bucket"。
+description: 在连续三次同方向的第 3 天复盘之后，把改评分写成建议交给用户。默认不把校准数据发给外部模型。用户同意后才改 rubric。触发词："升级 rubric"/"bump rubric"/"更新公式"。
 argument-hint: --propose "<...>" | --bucket-only [--scheme ratio|absolute|percentile]
 allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep, Skill, Task, mcp__llm-chat__chat
 ---
@@ -11,7 +11,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep, Skill, Task, mcp__llm-cha
 
 | 模式 | 触发 | 做什么 | 验证强度 |
 |---|---|---|---|
-| **完整 rubric bump** | `--propose "<新公式>"` | 改公式 / 维度 / 权重 | 5 步 + 跨模型审核（强制） |
+| **完整 rubric bump** | 连续三次同方向之后，用户要求讨论 | 先写建议；用户同意才改公式 | 本地核对。外部审核默认关闭 |
 | **bucket-only 重校** | `--bucket-only` | 只重新派生 bucket 边界 | 数据自动派生，无审核 |
 
 完整 rubric bump 严格遵守 [shared-references/bump-validation-protocol.md](../../shared-references/bump-validation-protocol.md) 的 5 步。bucket-only 走轻量路径——见下方 Phase B。
@@ -63,14 +63,9 @@ allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep, Skill, Task, mcp__llm-cha
 ## Constants
 
 - **READINESS_HEURISTIC** —
-  - **默认参考**：校准池 ≥ 5 样本 + 至少 1 个跨样本观察有 ≥3 样本支持
-  - **但 Claude 可以提议 bump**（即使样本少）如果观察信号特别强：
-    - N=3 但出现完全推翻当前 rubric 假设的强反例（composite 8.5 vs 实绩 5w 这种 ≥3x 偏差）
-    - 1 篇出现单点但极强的现象（如评论区出现 ≥2000 赞的单一模因）
-  - **Claude 也可以拒绝 bump**（即使样本足）如果证据弱：
-    - N=10 但观察都是低置信度的零碎 pattern，无清晰方向
-    - 用户复盘时大量"随便看了下"的非严肃判断
-  - **写在 prediction header 或 cheat-bump 输出时必说明**：本次提议是 default-aligned 还是 judgment-driven，给用户审视依据
+  - 未满连续三次同一方向的有效复盘：不提议改规则
+  - 满了也只输出建议。用户明确同意之后才改 `rubric_notes.md`
+  - 一次很大的偏差不够。不要用单条极端样本提前提议
 - **THRESHOLD = 0.8** — 新排序与实绩排序一致性阈值（4/5）。这条**写死**——bump 验证的统计刚性
 - **CROSS_MODEL_AUDIT = false** — 默认不调用外部模型。某一次要外发时，必须当次得到用户明确确认，且只发送下面 Phase 4 规定的脱敏字段
 - **REQUIRE_CONFIRM = true** — 落地前要求用户明确"yes, bump"
@@ -85,6 +80,8 @@ allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep, Skill, Task, mcp__llm-cha
 | `.cheat-state.json` | 状态 |
 
 ## Workflow
+
+本 fork 里，改评分规则只能先写成给用户的建议。最近三次计入的发布后第 3 天复盘必须是同一方向（三次都偏高，或三次都偏低）。浏览为「不可用」、提前复盘、没有中枢的样本不计入。未满三次，就不要提议改规则，也不要修改 `rubric_notes.md`。下面关于「可以更早提议」的旧说法不再使用。
 
 ### Phase 0: 前置门槛检查
 

@@ -1,3 +1,5 @@
+> 本 fork 的现用流程是 X 短帖：打分、盲预测、intent 链接由人发送、发布后第 3 天手动复盘。不要按下文的视频拍摄或外部热点步骤执行。现用说明在仓库根 `SKILL.md`。
+
 # 工作流速查（cheat-on-content）
 
 > 这是 `/cheat-init` 在你的项目根创建的速查文档。完整规范在 cheat-on-content 的 `SKILL.md` 和 `shared-references/`。

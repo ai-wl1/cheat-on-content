@@ -1,3 +1,5 @@
+> 本 fork 的现用评分是 `short-text-zero.md`。本文件不是 X 帖流程的规则。
+
 # Starter Rubric：通用 / 未分类内容 — v0 cold-start 占位
 
 > **⚠️ 这是通用 catch-all rubric——当你的内容形式不属于观点视频、长文、短文、播客、教程中的任何一种时使用。**

@@ -1,3 +1,5 @@
+> 下文的播放量和「万」来自上游视频项目，不是本 fork 的指标。X 帖以 `templates/prediction.template.md` 和 `templates/retro.template.md` 为准：浏览、点赞、回复、转发，缺失写「不可用」。
+
 # Prediction Anatomy（预测日志解剖）
 
 被这些子 skill 引用：`cheat-predict`、`cheat-retro`、`templates/prediction.template.md`。

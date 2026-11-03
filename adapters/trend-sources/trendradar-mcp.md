@@ -1,3 +1,5 @@
+> X 流程不要调用本适配器。
+
 # adapters/trend-sources/trendradar-mcp — 综合社会热点（MCP）
 
 **适合谁**：观点视频 / 时评 / 文化垂类 / 美食 / 职场 / 社会议题——**任何非 AI 垂直**的内容。
