@@ -137,13 +137,13 @@ allowed-tools: Bash(*), Read, Write, Edit, Glob, WebFetch, Skill
 **Q2.1: 平台 + 抓取计划**（仅 Q2=b）
 
 > "你内容主要在哪个平台？
-> a) 抖音 — 装 douyin-session adapter（Playwright + 扫码登录抖音创作者中心）
-> b) 小红书 — 装 xhs-explore adapter（Playwright + 扫码登录小红书创作者中心）
-> c) YouTube — 装 youtube-data-api adapter（需 API key）
-> d) B 站 — bilibili-stat adapter
-> e) LinkedIn — 装 linkedin-session adapter（Playwright + 登录 LinkedIn，抓单帖分析）
-> f) 微信视频号 — 装 wechat-channels adapter（Playwright + 扫码登录视频号助手，仅抓自己账号后台数据）
-> g) 其他 / 多平台 — 走 manual paste 模式"
+> a) 抖音 — 不要安装或运行。登录态适配器在 `legacy/UNREVIEWED-DO-NOT-USE/`，未审查
+> b) 小红书 — 不要安装或运行。同上
+> c) YouTube — 本仓库没有可用的 youtube adapter
+> d) B 站 — 只有公开接口适配器 `adapters/perf-data/bilibili-stat/`。它不再从别的目录猜测报告
+> e) LinkedIn — 不要安装或运行。登录态适配器在 legacy 目录，未审查
+> f) 微信视频号 — 不要安装或运行。同上
+> g) 其他 / 多平台 — 走 manual paste。这是默认，也是登录态平台的唯一路径"
 
 如选 a/b/c/d/e/f → 询问 Q2.2；如选 g → 跳到 Q2.3 manual。
 
@@ -305,7 +305,7 @@ c) 不找 → state 标 `benchmark_status: none`，用通用 v0 起步
      "data_layer": "markdown",
      "hooks_installed": <查 Q5 映射表，写 bool true/false>,
      "enabled_trend_sources": ["manual-paste"],
-     "enabled_perf_adapters": <Q2.1=a→[\"douyin-session\"]；b→[\"xhs-explore\"]；c→[\"youtube-data-api\"]；d→[\"bilibili-stat\"]；e→[\"linkedin-session\"]；f→[\"wechat-channels\"]；其他→[]>,
+     "enabled_perf_adapters": <只有 Q2.1=d 且用户明确要 B 站公开接口时才写 [\"bilibili-stat\"]；抖音/小红书/LinkedIn/视频号/YouTube 一律 []，不要写入 legacy 适配器名>,
      "last_bump_at": null,
      "last_bump_self_audited": false,
      "last_published_at": null,
@@ -403,14 +403,14 @@ c) 不找 → state 标 `benchmark_status: none`，用通用 v0 起步
    - merge 进 `hooks/prediction-immutability.json` 的 `hooks.PreToolUse`
    - merge 进 `hooks/session-start.json` 的 `hooks.SessionStart`
    - merge 进 `hooks/meta-logging.json` 的 hooks（如同时启用）
-   - 复制 `prediction-immutability.sh` + `session-start.sh` + `log-event.sh` 到 `.cheat-hooks/`，chmod +x
+   - 复制 `prediction-immutability.sh`、`prediction_guard.py`、`session-start.sh`、`log-event.sh` 到 `.cheat-hooks/`。给 `.sh` 加可执行权限。告诉用户：hook 会尝试拒绝修改预测段，但宿主是否真的取消工具调用未验证，不能说成不可篡改
    - settings.json 里的 command 路径用 `${CLAUDE_PROJECT_DIR}/.cheat-hooks/`
 
 7. **(Pool 选项 c—Notion)** 仅记录到 state file 的 `pool_status: notion`，后续 cheat-trends 调用时再处理
 
 ### Phase 3.5: import 流程（仅 Q2=b 且用户同意抓取）
 
-如 Q2.2=现在装 → 走 adapter install + login（详见 [adapters/perf-data/<platform>/README.md](../../adapters/perf-data/)）。
+不要引导用户安装或登录 `legacy/UNREVIEWED-DO-NOT-USE/` 里的适配器。抖音、小红书、LinkedIn、视频号没有可运行的抓取步骤；历史导入只用用户自己粘贴的公开数据。B 站如果用户明确要求，才可以提到 `adapters/perf-data/bilibili-stat/`，并且不要从其他目录挑选报告文件。
 
 抓取成功后，对每条已发视频：
 

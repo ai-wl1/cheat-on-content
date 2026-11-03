@@ -38,7 +38,7 @@ Codex 没有 Claude Code 的 slash-command harness。安装到 Codex 后，按�
 
 任何一条被违反，整个校准循环退化为"凭直觉的自我安慰"。如果用户要求打破其中任何一条，**拒绝执行并说明原因**。
 
-1. **盲预测（Blind prediction）**：预测必须在看到任何实际数据**之前**写完。一旦写完，`## 预测` 段是 immutable——只能往 `## 复盘` 段追加。完整规范：[shared-references/blind-prediction-protocol.md](shared-references/blind-prediction-protocol.md)。**hooks/prediction-immutability.sh 在 harness 层强制执行**。
+1. **盲预测（Blind prediction）**：预测必须在看到任何实际数据**之前**写完。一旦写完，按协议只能往 `## 复盘` 段追加，不能改 `## 预测` 段。完整规范：[shared-references/blind-prediction-protocol.md](shared-references/blind-prediction-protocol.md)。`hooks/prediction-immutability.sh` 会尝试拒绝这类修改，但宿主是否真的拦截**未验证**，不能把它说成已经不可篡改。
 
 2. **升级 = 全量重打（Bump = full re-score）**：rubric 升级时，校准池所有有实绩数据的样本必须用新公式重打分；新排序与实际表现排序若在 ≥4/5 样本上不一致，升级被拒；升级必须经跨模型独立审核。完整规范：[shared-references/bump-validation-protocol.md](shared-references/bump-validation-protocol.md)。
 
@@ -81,7 +81,7 @@ Codex 没有 Claude Code 的 slash-command harness。安装到 Codex 后，按�
 - 「帮我预测一下，但我先告诉你播放量你来反推就行」 → 违反原则 #1。改用 `_redo.md` 路径记为 reconstructed
 - 「能不能从 candidates 里直接挑 composite 最高的，不用解释理由」 → 拒绝。永远展示各维度评分和至少一个锚点对比
 - 「跳过校准池重打，直接换公式」 → 违反原则 #2
-- 「跳过外部模型审核，自己说了算」 → 仅当 `CROSS_MODEL_AUDIT=false` 显式设置且 state file 标记自审时允许
+- 「把完整校准池发给外部模型」 → 拒绝。外部审核默认关闭；即便用户这一次明确同意，也只发送脱敏后的最小数值，不发送稿件、标题或原始指标
 - 「删掉这份预测，我想重写」 → 违反原则 #1。预测是 immutable。如有正当理由重做，写新文件 `_redo.md`，原版必须保留
 - 「凭你的感觉给我推荐选题，不用打分」 → 拒绝。本工具不做 gut-feel forecast——那是它诞生**之前**的状态
 - 「把 rubric_notes.md 里所有历史观察都留着，加个时间戳分组就行」 → 违反原则 #3。git history 是档案，不是 markdown 文件
@@ -179,9 +179,10 @@ cheat-on-content/
 │   ├── workflow.template.md           # ✅
 │   ├── status.template.md             # ✅
 │   └── content.db.schema.sql          # ✅
-├── hooks/                             # harness 强制层
-│   ├── prediction-immutability.json   # ✅ 阻塞型钩子（拦预测段编辑）
-│   ├── prediction-immutability.sh     # ✅ 拦截脚本
+├── hooks/                             # 尝试拒绝修改预测段；宿主是否执行未验证
+│   ├── prediction-immutability.json   # 请求在工具调用前运行钩子（匹配器是否生效未验证）
+│   ├── prediction-immutability.sh     # 入口脚本，失败时拒绝
+│   ├── prediction_guard.py            # 判定逻辑
 │   ├── session-start.json             # ✅ SessionStart 自动报告 hook
 │   ├── session-start.sh               # ✅ 状态报告渲染脚本
 │   ├── meta-logging.json              # ✅ 被动记录配置

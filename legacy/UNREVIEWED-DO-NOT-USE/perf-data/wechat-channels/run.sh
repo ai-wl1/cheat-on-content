@@ -33,28 +33,33 @@ if ! PROJECT_ROOT="$(find_project_root)"; then
 fi
 
 REPORT_PATH="$VIDEO_FOLDER_REAL/report.md"
-rm -f "$REPORT_PATH"
-cleanup_report_on_failure() {
-  local status=$?
-  if [[ "$status" -ne 0 ]]; then
-    rm -f "$REPORT_PATH"
-  fi
-}
-trap cleanup_report_on_failure EXIT
+# Do not delete an existing report before dependency and login checks, and do
+# not delete it when those checks or the crawler fail.
 
 if [[ -n "${CHEAT_PYTHON:-}" ]]; then
-  PYTHON="$CHEAT_PYTHON"
-elif [[ -x "$PROJECT_ROOT/.venv/Scripts/python.exe" ]]; then
-  PYTHON="$PROJECT_ROOT/.venv/Scripts/python.exe"
-elif [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
-  PYTHON="$PROJECT_ROOT/.venv/bin/python"
-elif command -v python3 >/dev/null 2>&1; then
-  PYTHON="python3"
-elif command -v python >/dev/null 2>&1; then
-  PYTHON="python"
-else
-  echo "python not found" >&2
-  exit 2
+  RESOLVED_PYTHON="$(realpath -- "$CHEAT_PYTHON" 2>/dev/null || true)"
+  VENV_BIN="$(realpath -- "$PROJECT_ROOT/.venv/bin/python" 2>/dev/null || true)"
+  VENV_WIN="$(realpath -- "$PROJECT_ROOT/.venv/Scripts/python.exe" 2>/dev/null || true)"
+  if [[ -n "$RESOLVED_PYTHON" && ( "$RESOLVED_PYTHON" == "$VENV_BIN" || "$RESOLVED_PYTHON" == "$VENV_WIN" ) ]]; then
+    PYTHON="$RESOLVED_PYTHON"
+  else
+    echo "refusing CHEAT_PYTHON outside this project's .venv: $CHEAT_PYTHON" >&2
+    PYTHON=""
+  fi
+fi
+if [[ -z "${PYTHON:-}" ]]; then
+  if [[ -x "$PROJECT_ROOT/.venv/Scripts/python.exe" ]]; then
+    PYTHON="$PROJECT_ROOT/.venv/Scripts/python.exe"
+  elif [[ -x "$PROJECT_ROOT/.venv/bin/python" ]]; then
+    PYTHON="$PROJECT_ROOT/.venv/bin/python"
+  elif command -v python3 >/dev/null 2>&1; then
+    PYTHON="python3"
+  elif command -v python >/dev/null 2>&1; then
+    PYTHON="python"
+  else
+    echo "python not found" >&2
+    exit 2
+  fi
 fi
 
 if ! "$PYTHON" -c "import playwright" 2>/dev/null; then

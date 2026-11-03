@@ -1,1 +1,2 @@
-httpx>=0.27
+# Exact pin. Distribution hashes were not added; the files were not fetched here.
+httpx==0.27.2

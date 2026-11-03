@@ -95,7 +95,7 @@ a) **粘文本（最简单，推荐）**
    
 b) **whisper 转录视频文件**
    - 你下载了视频到 samples/<账号名>/<video>/source.mp4
-   - 需要装 whisper-cpp + ffmpeg（见 adapters/script-extraction/whisper/README.md）
+   - 不要运行 Whisper 适配器。它在 `legacy/UNREVIEWED-DO-NOT-USE/script-extraction/whisper/`，未审查。用户可以自己提供已经写好的文字稿。
    - 转录可能有错别字 / 漏字 / 标点不准——准确度比 a 差
 
 c) **跳过 script，只用元数据 + 印象**
@@ -115,18 +115,14 @@ a) **手填数字（最简单）**
    - 你查一下账号后台或视频页面，告诉我数字
    - 不需要装任何工具
 
-b) **adapter 自动抓（如已配置）**
-   - 你已经装了 perf-data adapter（如 douyin-session）
-   - 给我视频 URL，工具自己抓数据 + top 评论
-   - 评论数据更全（手填只能告诉我数字，adapter 能拿到具体评论文本）
+b) **不要自动抓取**
+   - 抖音、小红书、LinkedIn、视频号、Whisper 都在 `legacy/UNREVIEWED-DO-NOT-USE/`，不要运行
+   - 没有手填数字就停在这一条，不要改去登录后台
 
-回 a / b。
+回 a。不要选自动抓取。
 ```
 
-**最常见的组合**：
-- 完全零依赖路径：1a + 1b（粘文本 + 手填）—— 5 分钟搞定
-- 评论质量优先：1a + 2b（粘文本 + adapter 抓）—— 装了 adapter 就走这个
-- 拿不到稿子兜底：1b + 1b（whisper + 手填）
+**可用路径**：粘文本 + 手填数字。没有文字稿就不要转写。
 
 ### Phase 2: 收集材料
 
@@ -144,30 +140,9 @@ b) **adapter 自动抓（如已配置）**
 
 收到 script → 算 video_id（sha256(script_content)[:12]）→ 进 Phase 2 数据采集。
 
-#### Path B: whisper 转录（Phase 1a=b）
+#### Path B: 不要转写视频
 
-```
-先确认 whisper 装了：
-
-[运行 `command -v whisper-cpp` 或 `command -v whisper` 检测]
-
-如果没装：
-  ❌ whisper 没装。三选一：
-  - brew install whisper-cpp（推荐——快）
-  - pip install openai-whisper（Python 慢些）
-  - 切回 Path A 自己粘文本（推荐用轻抖等小程序）
-
-装好后：把视频文件放到 samples/<账号名>/<video-name>/source.mp4
-（一个视频一个子目录）
-
-放好后告诉我"放好了 N 条"，我转录。
-```
-
-用户放好后：
-1. Glob `samples/<账号名>/*/source.*` 找视频文件
-2. 对每个视频跑 `bash adapters/script-extraction/whisper/run.sh <video> samples/<账号名>/<id>/`
-3. 失败项报告但继续其他
-4. 进 Phase 2 数据采集
+`legacy/UNREVIEWED-DO-NOT-USE/script-extraction/whisper/` 未审查，不要安装 whisper，也不要运行那个目录里的脚本。用户如果没有文字稿，就改走 Path A，请用户粘贴文本。没有文本就停止这一条，不要自己转写。
 
 #### Path C: 跳过 script（Phase 1a=c）
 
@@ -192,16 +167,9 @@ b) **adapter 自动抓（如已配置）**
 如果你能再粘 top 5-10 条评论（带赞数）更好——pattern 拆能挖到模因层。
 ```
 
-**如 Phase 1b=b（adapter）**：
+**不要走适配器抓取**：
 
-```
-你说装了 adapter（如 douyin-session）。给我每条视频的 URL，
-我跑 adapter 自动抓数据 + top 评论。
-
-第 1 条 URL：
-```
-
-收到 URL → 调对应 adapter → 写数据 + 评论到 samples/<账号名>/<id>/meta.md。
+即使用户说已经装了 douyin-session 或其他登录态适配器，也不要运行 `legacy/UNREVIEWED-DO-NOT-USE/` 里的脚本。请用户从公开页面抄数字；没有数字就记为缺失，不要登录后台补。
 
 **通用**：继续问第 2 条 / 第 3 条 / ... 用户说"够了"或达到 MAX_SAMPLES_PER_RUN 时进 Phase 3。
 

@@ -93,39 +93,16 @@ allowed-tools: Bash(*), Read, Edit, Write, Glob, Grep, Skill
 
 | Platform | Adapter | 调用方式 |
 |---|---|---|
-| `douyin` | `adapters/perf-data/douyin-session/` | `bash <adapters-dir>/douyin-session/run.sh <aweme_id> <video_folder>` |
-| `xhs` | `adapters/perf-data/xhs-explore/` | `bash <adapters-dir>/xhs-explore/run.sh <note_id> <video_folder>` |
-| `linkedin` | `adapters/perf-data/linkedin-session/` | `bash <adapters-dir>/linkedin-session/run.sh <activity_id> <video_folder>` |
-| `wechat_channels` | `adapters/perf-data/wechat-channels/` | `bash <adapters-dir>/wechat-channels/run.sh <post_id> <video_folder>` |
-| `youtube` | `adapters/perf-data/youtube-data-api/`（planned — batch 3, not yet available） | 调 YouTube Data API（需 API key） |
-| `bilibili` | `adapters/perf-data/bilibili-stat/` | `bash <adapters-dir>/bilibili-stat/run.sh <bvid> <video_folder>` |
-| 其他 | 无 adapter | 优雅降级到 Path A |
+| `douyin` / `xhs` / `linkedin` / `wechat_channels` | 无。对应脚本在 `legacy/UNREVIEWED-DO-NOT-USE/`，**不要运行** | 只用 Path A，手动粘贴 |
+| `youtube` | 无可用 adapter | 只用 Path A |
+| `bilibili` | `adapters/perf-data/bilibili-stat/` | `bash <adapters-dir>/bilibili-stat/run.sh <bvid> <video_folder>`。脚本不会再从父目录挑选另一份 `report.md` |
+| 其他 | 无 adapter | Path A |
 
 > `<adapters-dir>` = 克隆源码处的 `cheat-on-content/adapters/perf-data/`（install.sh **不**复制 adapter 到 ~/.claude/skills，只复制 15 个 skill）。定位：`find ~ -path '*/cheat-on-content/adapters/perf-data' -type d | head -1`。
 
-**douyin-session 的特殊处理**：
-- 视频 URL（如 `https://v.douyin.com/abc123`）→ 短链解析 → 提取 aweme_id
-- 调用前确认 cookie 文件存在（adapter 会找 `.auth/`）；不存在则提示用户先跑 `python <adapter>/crawler.py login`
-- adapter 输出在 `<video_folder>/report.md`（adapter 的 renderer.py 已经按这个格式写）
-- cheat-retro 读这个 report.md 解析关键数据 → 摘要写入 prediction 的复盘段
+**登录态适配器不要使用**：
 
-**xhs-explore 的特殊处理**：
-- 笔记 URL（`https://www.xiaohongshu.com/explore/<note_id>?xsec_token=...` 或 `https://xhslink.com/xxx`）→ 提取 note_id
-- 调用前确认 cookie 存在（adapter 找 `.auth-xhs/`）；不存在则提示先跑 `python <adapter>/crawler.py login`
-- 字段已校准（观看 `view_count` 等已写死）；万一接口改版导致某项为 0，看 report.md 末尾 galaxy 原始 JSON，把新 key 加进 `crawler.py` 的 `_normalize_note`
-- **评论可能抓不到**（xsec_token 缺失 / 评论关闭）→ report.md 标"未抓到评论" → 此时**降级要求用户 manual 粘 top 20 评论**（评论是真信号，不能省）
-
-**linkedin-session 的特殊处理**：
-- 帖子 URL（`https://www.linkedin.com/feed/update/urn:li:activity:<id>/`）或裸 activity_id → adapter 自动提取 activity_id
-- 调用前确认 cookie 存在（adapter 找 `.auth-linkedin/`）；不存在则提示先跑 `python <adapter>/crawler.py login`
-- **只能抓你本人发的帖子**（LinkedIn 单帖分析仅作者可见）；LinkedIn 界面 日/英 随机切换，`extract.py` 的 `POST_METRICS` 已存双语标签，万一某项为 None 看 `.cheat-cache/linkedin-session-debug/post_<id>.txt` 把新标签补进去
-- **评论只给数、不给正文**（分析页限制）→ report.md 标注 → **降级要求用户 manual 粘 top 评论**（评论是真信号，不能省）
-
-**wechat-channels 的特殊处理**：
-- 仅抓用户自己登录后可见的视频号助手后台数据；调用前确认内容项目存在 `.auth-wechat-channels/`
-- 不存在登录态时，提示先运行 `python <adapter>/review.py login` 并扫码；登录态只保存在内容项目本地
-- adapter 输出 `report.md`，但不落盘原始响应、请求体、完整后台 URL、后台截图、页面文本、评论者昵称或内部用户 ID
-- 找不到目标作品或 adapter 失败时，非 0 退出并降级 manual；不得把旧 report.md 当作本次成功
+抖音、小红书、LinkedIn、视频号的脚本已移到 `legacy/UNREVIEWED-DO-NOT-USE/`。不要运行它们，不要为它们收集 cookie 或扫码登录，也不要读取 `.auth*`。这些平台一律走 Path A。
 
 **bilibili-stat 的特殊处理**：
 - 视频 URL（`https://www.bilibili.com/video/<BV号>` 或 b23.tv 短链）或直接给 BV 号 → adapter 自动提取 BV 号
@@ -358,7 +335,7 @@ Diff `scripts/<id>.md`（pre-shoot 草稿，可能是 cheat-seed 写或用户写
 ## Key Rules
 
 1. **预测段 immutable**。Phase 0 cache + Phase 5 校验是双保险。任何 hash 不一致 → 报错回滚
-2. **数据来源必须标注**。`数据来源: manual paste` 或 `数据来源: adapter:douyin-session` 写进复盘段
+2. **数据来源必须标注**。手填写 `数据来源: manual paste`。不要写 `adapter:douyin-session` 或任何 legacy 适配器名。B 站公开接口如果真的用了，写 `adapter:bilibili-stat`。
 3. **观察可追溯**。每条新观察引用具体数据点
 4. **不在复盘里 bump**。Phase 7 只**提议** bump，实际升级走 `/cheat-bump`——避免一次操作做两件事
 5. **早复盘标记**。RETRO_WINDOW_DAYS 不到就复盘 → state file 记 `early_retro: true`，bump 时这种样本权重降级

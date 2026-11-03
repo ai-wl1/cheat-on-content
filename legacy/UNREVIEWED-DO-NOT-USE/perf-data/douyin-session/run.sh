@@ -108,25 +108,11 @@ else
   "$PYTHON" "$ADAPTER_DIR/review.py" video "$AWEME_ID"
 fi
 
-# review.py writes to ROOT/videos/<auto-named-folder>/report.md.
-# We need to find the just-written report.md and move it to our video_folder if names differ.
-# (review.py uses video.title for folder name; ours uses <date>_<id>_<short>.)
-LATEST_REPORT=$(find "$( dirname "$VIDEO_FOLDER" )" -name "report.md" -newer "$VIDEO_FOLDER" -type f 2>/dev/null | head -1)
-if [[ -n "$LATEST_REPORT" && "$( dirname "$LATEST_REPORT" )" != "$VIDEO_FOLDER" ]]; then
-  # Move the autonamed folder's report into our canonical folder
-  cp "$LATEST_REPORT" "$VIDEO_FOLDER/report.md"
-  AUTO_DIR=$( dirname "$LATEST_REPORT" )
-  # Optionally also copy script.txt if review.py wrote it
-  if [[ -f "$AUTO_DIR/script.txt" ]]; then
-    cp "$AUTO_DIR/script.txt" "$VIDEO_FOLDER/script.txt"
-  fi
-  # Clean up the auto-generated directory to avoid duplicates
-  rm -rf "$AUTO_DIR"
-  echo "[douyin-session] moved auto-named output and cleaned up $AUTO_DIR"
-fi
-
+# Do not search sibling directories and do not delete anything.
+# The previous finder could select an unrelated newer report.md and then
+# recursively remove that report's directory.
 if [[ ! -f "$VIDEO_FOLDER/report.md" ]]; then
-  echo "❌ report.md not produced — see review.py output above for details" >&2
+  echo "❌ report.md was not written to $VIDEO_FOLDER. This script will not search other directories or delete them." >&2
   exit 3
 fi
 

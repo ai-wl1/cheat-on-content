@@ -185,6 +185,13 @@ async def run_archive(input_path: Path, output_root: Path, limit: int | None = N
                     "error": "缺少 note_id 或 xsec_token",
                 })
                 continue
+            if not isinstance(note_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", note_id):
+                results.append({
+                    "success": False,
+                    "note_id": note_id,
+                    "error": "note_id 含路径字符，拒绝拼进输出路径",
+                })
+                continue
 
             out_dir = output_root / note_id
             _log(f"({i}/{len(notes)}) 归档 {note_id} {title[:30]}...")

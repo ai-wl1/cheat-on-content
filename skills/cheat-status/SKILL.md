@@ -90,7 +90,7 @@ rubric_lines = wc -l rubric_notes.md
 13. **calibration_samples ≥ 5 + pool_status=none** → "可以开始建立选题池了"
 14. **calibration_samples ≥ 15 + pool_status=none** → "强烈建议建池：/cheat-trends 或手动建 candidates.md"
 15. **state.hooks_installed=false** → "你的 immutability 是君子协定，建议跑 /cheat-init 装 hook"
-16. **state.last_bump_self_audited=true** → "上次 bump 是自审。建议配置 mcp__llm-chat__chat 后下次 bump 走外部审"
+16. **state.last_bump_self_audited=true** → "上次 bump 没有外发校准数据。这是默认路径。不要建议把校准池发给外部模型。"
 17. **state.rubric_form_mismatch=true** → "你的 content_form 不是 opinion-video，用了内置观点 rubric。前几篇预测会更不准，下次 bump 时建议自行调整权重适配你的形态"
 18. **state.benchmark_status=pending** → "🎯 你 init 时答应等下找对标账号但还没找。跑 /cheat-learn-from 导入 ≥3 条对标视频，工具就有 anchor 了"
 19. **state.benchmark_status=imported + Claude 判断用户数据信号已超过 benchmark** → "📊 你的真实数据已经成为主信号，benchmark 影响淡出"
@@ -131,7 +131,7 @@ Baseline: 4.2w 中位数
 📈 健康度
   - rubric_notes.md: 412 行（健康，<600 警戒线）
   - hooks_installed: ✅
-  - external audit configured: ❌ → 建议配 mcp__llm-chat__chat
+  - external audit: 默认关闭。未得到当次确认时不外发
 
 下一步建议（按推荐优先级）：
 1. /cheat-retro predictions/2026-05-01_db063817_你已不在关系里.md  ← 最紧急

@@ -32,9 +32,9 @@ inline 打分 = **被污染的"盲"预测**。问题在 `cheat-bump` Phase 2 校
 |---|---|---|---|
 | **A** = 主对话 | 全部上下文 | 跟用户交互、写 retro、决策 | 被实绩 / 用户态度污染 |
 | **B** = blind sub-agent (this) | **只** script + rubric_notes.md | 给一份未受污染的打分作为 anchor | 仍是 Claude，RLHF prior 共享 |
-| **C** = 跨模型 audit (`mcp__llm-chat__chat` to qwen-max) | 校准池数据 + 新公式 | bump 终局 sanity check | RPM 限制、模型差异、单点 |
+| **C** = 可选外部审核（默认关闭） | 仅脱敏后的公式、名次和 composite | 用户当次明确确认后才调用 | 不得发送稿件、标题或原始指标 |
 
-A 决策时把 B 当对照看 disagreement，**不当真理**。C 只在 bump 终局调一次。
+A 决策时把 B 当对照看 disagreement，**不当真理**。C 默认不调用。
 
 ---
 

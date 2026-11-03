@@ -142,7 +142,7 @@
 | 字段 | 类型 | 写入者 |
 |---|---|---|
 | `last_bump_at` | ISO 8601 / null | cheat-bump |
-| `last_bump_self_audited` | bool | cheat-bump（CROSS_MODEL_AUDIT=false 时 true） |
+| `last_bump_self_audited` | bool | cheat-bump（默认 true：没有当次确认的外部审核） |
 | `last_published_at` | ISO 8601 / null | cheat-publish |
 | `last_published_file` | string / null | cheat-publish |
 | `last_retro_at` | ISO 8601 / null | cheat-retro |

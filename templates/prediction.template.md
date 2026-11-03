@@ -48,8 +48,8 @@
 
 ## 预测 v1
 
-> ⚠️ **本段是 immutable**——`hooks/prediction-immutability.sh` 会拦截对本段的 Edit。
-> 写完不可改。如要重做请创建 `<本文件名>_redo.md`，原文件保留。
+> ⚠️ **本段按协议不可改。** `hooks/prediction-immutability.sh` 会尝试拒绝修改，但宿主是否拦截**未验证**，没有环境变量可以绕过。
+> 写完不要改。如要重做请创建 `<本文件名>_redo.md`，原文件保留。复盘只追加。
 
 **Bucket**: `<X-Yw>`  ← e.g. `30-100w`
 

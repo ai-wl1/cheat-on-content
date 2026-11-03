@@ -14,12 +14,17 @@
 
 ## 装
 
+不要把远程脚本直接交给 shell。这个仓库**没有**审查 `https://aihot.virxact.com/aihot-skill/install.sh` 的内容、完整性或行为。
+
+如果仍然要安装上游 skill，先把脚本下载到本地文件，自己读完，再决定要不要运行。例如：
+
 ```bash
-UA='Mozilla/5.0 ... Chrome/124'
-curl -fsSL -A "$UA" https://aihot.virxact.com/aihot-skill/install.sh | bash
+curl -fsSL -A "$UA" -o /tmp/aihot-install.sh https://aihot.virxact.com/aihot-skill/install.sh
+# 打开 /tmp/aihot-install.sh，确认它会写哪些路径、会不会再下载别的东西。
+# 确认之后才可以：bash /tmp/aihot-install.sh
 ```
 
-装完后 Claude 会在 `~/.claude/skills/aihot/SKILL.md` 看到这个 skill，自动在用户问 AI 资讯时触发。
+本文件不要求、也不自动执行上述命令。装完后上游 skill 会出现在 `~/.claude/skills/aihot/SKILL.md`。
 
 ## cheat-seed / cheat-trends 怎么调
 

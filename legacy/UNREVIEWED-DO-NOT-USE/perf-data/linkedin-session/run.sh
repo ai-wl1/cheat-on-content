@@ -100,16 +100,11 @@ else
   "$PYTHON" "$ADAPTER_DIR/review.py" video "$ACTIVITY_ID"
 fi
 
-# review.py writes to CHEAT_VIDEOS_DIR/<auto-named-folder>/report.md.
-# Move it into our canonical video_folder if names differ.
-LATEST_REPORT=$(find "$( dirname "$VIDEO_FOLDER" )" -name "report.md" -newer "$VIDEO_FOLDER" -type f 2>/dev/null | head -1)
-if [[ -n "$LATEST_REPORT" && "$( dirname "$LATEST_REPORT" )" != "$VIDEO_FOLDER" ]]; then
-  cp "$LATEST_REPORT" "$VIDEO_FOLDER/report.md"
-  AUTO_DIR=$( dirname "$LATEST_REPORT" )
-  if [[ -f "$AUTO_DIR/script.txt" ]]; then
-    cp "$AUTO_DIR/script.txt" "$VIDEO_FOLDER/script.txt"
-  fi
-  echo "[linkedin-session] moved auto-named output to $VIDEO_FOLDER/"
+# Do not search sibling directories for a "newer" report.md. That heuristic can
+# overwrite the requested folder with an unrelated report.
+if [[ ! -f "$VIDEO_FOLDER/report.md" ]]; then
+  echo "❌ report.md was not written to $VIDEO_FOLDER. This script will not search other directories." >&2
+  exit 3
 fi
 
 if [[ ! -f "$VIDEO_FOLDER/report.md" ]]; then

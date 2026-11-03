@@ -8,6 +8,16 @@ All notable changes to cheat-on-content will be documented here.
 
 ## [Unreleased]
 
+### Security
+
+- 预测保护钩子改为无法判断就拒绝：不再只看 Edit/Write，忽略 `CHEAT_BYPASS_IMMUTABILITY`，空输入和无法解析的输入都拒绝，路径会规范化，预测段会全部检查。宿主是否真的取消工具调用**未验证**。
+- `install.sh` / `uninstall.sh` 只删除带本安装器标记的目录，或指向本仓库的符号链接。
+- 抖音适配器不再递归删除目录；视频号适配器不再先删已有报告。
+- 登录态适配器（抖音、小红书、视频号、LinkedIn）和 Whisper 移到 `legacy/UNREVIEWED-DO-NOT-USE/`。
+- `aihot` 文档不再使用 `curl | bash`。
+- rubric 外部审核默认关闭，当次确认后也只发送脱敏字段。
+- `requirements.txt` 改为精确版本。没有附带哈希：发行包没有在这次修改里下载核对。
+
 ### Added — xhs-explore adapter: 公开页兜底、正文/图片归档、账号汇总
 
 - 融合 [xhs-analytics](https://github.com/SingularGuyLeBorn/xhs-analytics) 的公开页解析能力：
