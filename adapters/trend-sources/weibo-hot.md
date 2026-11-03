@@ -1,3 +1,5 @@
+> X 流程不要调用本适配器。
+
 # Adapter: weibo-hot（微博热搜）
 
 被以下 skill 调用：`cheat-seed` Phase 2a、`cheat-trends`。

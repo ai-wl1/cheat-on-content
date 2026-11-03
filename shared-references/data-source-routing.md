@@ -1,3 +1,5 @@
+> X 流程不使用本文件里的外部热点源。选题只接受用户给的话题、`big-v.md`，以及 `digest/` 里的本地摘要。不要调用下面列出的 API 或 MCP。
+
 # Data Source Routing — 热点工具的触发与路由协议
 
 被 cheat-seed / cheat-trends 引用。规定**何时**调热点工具、**调哪个**、**不调时怎么办**。

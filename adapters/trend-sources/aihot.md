@@ -1,3 +1,5 @@
+> X 流程不要调用本适配器，也不要安装它。每日材料来自用户本地的摘要文件。
+
 # adapters/trend-sources/aihot — AI 行业热点
 
 **适合谁**：AI 教程 / Builder / 工具号 / AI 行业评论。**不适合**普通生活/职场/文化垂类（用 trendradar-mcp.md）。

@@ -1,3 +1,5 @@
+> 本 fork 的现用评分是 `short-text-zero.md`。本文件不是 X 帖流程的规则。
+
 # Starter Rubric：播客 / 长视频 — v0 cold-start 占位
 
 **这是给完全没数据的新主播用的占位 rubric。**它会打错。**前 5 期预测精度大概 ±50%——这是 cold-start 的数学事实，不是 rubric 失败**。

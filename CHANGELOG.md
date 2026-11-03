@@ -8,6 +8,14 @@ All notable changes to cheat-on-content will be documented here.
 
 ## [Unreleased]
 
+### Changed — X 信息源账号
+
+- 评分、预测、复盘和曲线改为浏览、点赞、回复、转发。缺失写「不可用」，不当 0。采集窗口是发布后第 3 天。
+- 选题只接受用户话题、大 V 名单和本地每日摘要。没有可发的材料时输出「今天没有」。
+- 发帖改为本地生成 `https://x.com/intent/post` 链接，不调用发帖 API。
+- 无对标时把预测精度写成大约 ±50% 的工作假设。前 5 篇不按分数决定发不发。连续三次同方向偏差才提议改规则。
+- 活跃说明改为中文。
+
 ### Security
 
 - 预测保护钩子改为无法判断就拒绝：不再只看 Edit/Write，忽略 `CHEAT_BYPASS_IMMUTABILITY`，空输入和无法解析的输入都拒绝，路径会规范化，预测段会全部检查。宿主是否真的取消工具调用**未验证**。

@@ -5,6 +5,8 @@ argument-hint: "[— seed-from-benchmark] [— rebuild]"
 allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep
 ---
 
+> 只使用用户从公开页面粘贴的回复。不要要后台评论，不要运行 legacy 适配器。样本少就不要写成已验证的受众。
+
 # /cheat-persona — 受众画像派生
 
 从 `predictions/*.md` 复盘段的评论数据，聚类出账号真实受众画像，写入 `audience.md`。

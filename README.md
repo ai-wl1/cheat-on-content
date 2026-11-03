@@ -1,181 +1,58 @@
-<h1 align="center">
-  <img src="docs/logo.svg" alt="Cheat on Content" width="720">
-</h1>
+# Cheat on Content — X 信息源账号
 
-<h2 align="center">Cheat on Content</h2>
+这个 fork 把闭环用在一个 AI 信息源 X 账号上：新闻简评带来源链接，或者回复、引用转发大 V 的帖子。
 
-<p align="center">
-  <strong>English</strong>
-  &nbsp;·&nbsp;
-  <a href="docs/README_CN.md"><strong>简体中文</strong></a>
-</p>
+顺序是打分、盲预测、生成发帖链接、人自己点发送、发布后第 3 天把公开页面上的数字记下来。
 
-<p align="center">
-  <a href="https://watcha.cn/products/cheat-on-content">
-    <img src="docs/guancha-no1.svg" alt="Watcha Hot List · 观猹热榜 · #1" width="328">
-  </a>
-</p>
+不接发帖 API。不登录后台。不抓外部热点。`legacy/UNREVIEWED-DO-NOT-USE/` 里的脚本未审查，不要运行。
 
-<p align="center">
-<a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-v0.1.0-orange" alt="Version"></a>
-&nbsp;
-<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
-</p>
+## 指标
 
-<p align="center">
-For content creators — a skill that turns every post into a calibrated experiment.
-</p>
+发布后第 3 天，从帖子公开页面手抄：
 
-<p align="center">
-You're reading this. The skill predicted it.<br>
-It turns every "I feel this will go viral" into a calibrated experiment.<br>
-It took me from zero to 1M followers in a month. It said I'd write this. I did.<br>
-Your doubt — predicted too.
-</p>
+- 浏览
+- 点赞
+- 回复
+- 转发
+- 书签可以记，但要注明公开页面是否看得见
 
----
+看不到的写「不可用」，不要写成 0。页面上就是 0 才写 0。
 
-## 🎬 What it actually does
+没有对标账号时，预测精度按大约 ±50% 的工作假设写进模板。这不是实测。
 
-Most creators live in the same gambling loop:
+前 5 篇只收集数据，不按分数决定发不发。连续三次同一方向的偏差之后，才可以把改评分写成建议，由人决定。
 
-> Publish → Numbers come in → Learn nothing → Roll the dice again
+没有带来源链接、值得发的材料时，输出「今天没有」。不要编链接、数字或引语。
 
-A creator who's shipped 200 pieces is barely 10% sharper than someone who's shipped 1 — because they never **kept books** after each round.
+## 发帖链接
 
-**Cheat on Content** makes every judgment get logged, retrospected, absorbed into the next:
-
-📊 Score → 🎯 Blind-predict → 🚀 Publish → 📈 T+3d retro → 🧬 Evolve your rubric
-
-This isn't motivation. It's **compounding** — every piece you don't retro is silently eroding your ability to see yourself.
-
-One month in = you have a hit-formula that's **only yours**.
-Three months in = you're 10× sharper than your first-day self.
-
----
-
-## 🌀 Origin
-
-> I never believed in fate. Until this skill made me film a video — and predicted exactly how much traffic that video would pull.
->
-> I tried to break it. I told my audience. I hoped collective observation would collapse the wave function and shift the trajectory.
->
-> The data was accurate.
->
-> I didn't escape fate. I just moved from first-order to second-order.
->
-> If even my awakening — even my audience's observation — was already in its prediction, then right now, reading this:
-> are you here out of curiosity, or just closing the algorithm's last move?
->
-> — *the creator*
-
----
-
-## ⚖️ How it differs from other "creator tools"
-
-| Others | This |
-|---|---|
-| Give you "inspiration" | Make **your own intuition** measurable |
-| AI writes for you | AI **judges** for you — the script stays yours |
-| Ship 10 versions, A/B test | Ship one — **bet** in writing, settle the books with data |
-| Static dashboard | An **evolving rubric** — your formula 3 months from now isn't the starting one |
-
-In a sentence: other tools help you "ship more." This helps you "judge sharper."
-
----
-
-## 🤔 Can't I just use ChatGPT / DeepSeek / Doubao?
-
-Those are **general assistants** — they tell everyone the same thing. You ask "will this go viral?" and the answer is fitted to global average opinion, not your channel. Ask again tomorrow — same answer. **It doesn't remember you. It doesn't change because of you.**
-
-This is **your own ops expert** — serving only your one channel:
-
-- The scoring formula is reverse-engineered from **your** history, not the global training distribution
-- Every piece you ship updates its understanding — by month three, judgment accuracy is 10× sharper than day one (**auto-evolving**)
-- It knows your benchmark account, your cadence, the last three reasons you flopped — things ChatGPT forgets after the first reply
-
-General LLMs help everyone. This helps **your** account.
-
----
-
-## 🛡️ Why the loop actually evolves
-
-📝 **Every piece is logged**: Score and prediction get written before publish, archived end-to-end. Three days later you settle accounts — you see exactly where you were sharp, where you were off. No more vague "I feel this one didn't land."
-
-🔁 **It gets sharper**: Three same-direction misses in a row, the tool actively prompts you to upgrade your scoring formula. **You don't have to remember — it remembers for you.**
-
-🛡️ **Upgrades have a brake**: Switching the formula requires re-scoring all historical samples — only released if it ranks more accurately than the old. Plus a cross-model independent audit — **so you can't fool yourself.**
-
-🪒 **The rubric is a workbench, not a museum**: Observations refuted by data get deleted; observations absorbed into formal dimensions also get deleted. It only holds what's most useful right now.
-
----
-
-## 📦 Install
+仓库里的 `tools/x_intent.py` 只在本地拼 URL，不联网：
 
 ```bash
-git clone https://github.com/XBuilderLAB/cheat-on-content.git
-cd cheat-on-content
+python3 tools/x_intent.py --text '简评。来源：https://example.com/post'
+python3 tools/x_intent.py --text '回复' --in-reply-to '1234567890'
+```
+
+得到 `https://x.com/intent/post?text=...`。回复会多一个 `&in_reply_to=`。打开后由人按发送。
+
+## 预测段
+
+写完不改。复盘只追加。`hooks/prediction-immutability.sh` 会尝试拒绝修改。下面两件事没有在这里验证：宿主是否对每次工具调用都跑这个钩子，以及退出码 1 是否会取消那次调用。所以不能说文件已经不可篡改。
+
+## 安装
+
+在本仓库根目录执行。安装器只替换它能确认是自己装上的技能目录；同名但没有标记的目录会留下。
+
+```bash
 bash install.sh
+bash install.sh --codex
+bash uninstall.sh
 ```
 
-> ⚠️ **Upgrading from v0.x?** Run `/cheat-migrate` in your content project after `git pull`. The 1.3 → 1.4 migration is **BREAKING for blind-channel integrity** — it splits `rubric_notes.md` so the blind sub-agent can't leak actuals. Without migrate, blind scoring will keep flagging `non_blind_warning`. See [CHANGELOG](CHANGELOG.md) and [migrations/1.3-to-1.4.md](migrations/1.3-to-1.4.md).
+不要用 `curl | bash` 安装任何附属脚本。
 
-14 sub-skills are symlinked into your agent's skill directory. One install, every content project gets it.
+初始化时在内容项目里说「初始化」。日常说法见 [SKILL.md](SKILL.md)。
 
-**Supported agents**: Claude Code (default) · Codex (`bash install.sh --codex`) · Both (`bash install.sh --all`)
+## 许可
 
-> Frozen version: `bash install.sh --copy` / `bash install.sh --codex --copy`
->
-> Uninstall: `bash uninstall.sh` / `bash uninstall.sh --codex` (your content data is not touched)
-
----
-
-## 🚀 First run
-
-In your content project directory, open a skill-compatible agent and say:
-
-```
-初始化 cheat-on-content
-```
-
-(or `init cheat-on-content`)
-
-Five yes/no questions complete onboarding. **Strongly recommend importing a benchmark account** — 5–10 samples and the tool gets an anchor immediately. Without one, your first 5 predictions land at ±50% precision.
-
----
-
-## ⚡ Daily use
-
-```
-score this scripts/<...>.md       → grade only
-start prediction scripts/<...>.md → blind prediction + decision log
-shot scripts/<...>.md             → create video folder + buffer +1
-shipped https://...                → buffer -1
-retro videos/<...>/                → T+3d data + retrospective
-status / fetch trends / find topic / bump rubric / find benchmark
-```
-
-Hook-aware agents auto-report buffer + pending retros + top candidates at every session start — no need to ask. Other agents: just say `status`.
-
-Full workflow + sub-skill details: see [SKILL.md](SKILL.md).
-
----
-
-## 📈 Star History
-
-<a href="https://star-history.com/#XBuilderLAB/cheat-on-content&Date">
-  <img src="docs/star-history.svg" alt="Star History Chart" width="720">
-</a>
-
----
-
-## 📜 License
-
-MIT. Commercial use, modification, closed-source integration — all fine.
-
----
-
-*Is this cheating? So was the calculator. So was Google.*
-*The future doesn't reward effort — it rewards those who see the pattern first.*
-
-*You reading this line — that's predicted too.*
+MIT。上游是 XBuilderLAB/cheat-on-content。
