@@ -140,7 +140,7 @@ bump 是高风险操作——会做 5 步验证（含跨模型独立审）。详
 | `RETRO_WINDOW_DAYS` | 3 | 长文 / 慢平台改 7 |
 | `BLIND_CHECK` | strict | 演练 / 测试时临时改 lenient |
 | `MIN_SAMPLES_FOR_BUMP` | 5 | 不要降 |
-| `CROSS_MODEL_AUDIT` | true（如 mcp__llm-chat__chat 已配） | 仅离线时 false |
+| `CROSS_MODEL_AUDIT` | false | 默认不外发。某一次 bump 要外发时，必须当次明确确认，且只发脱敏后的最小数值 |
 | `TREND_SOURCES` | ["manual-paste"] | 用 `enabled_trend_sources` 字段加新源 |
 | `POOL_PATH` | candidates.md | 用 Notion 时改字段 |
 
@@ -173,6 +173,7 @@ bump 是高风险操作——会做 5 步验证（含跨模型独立审）。详
 ├── .cheat-secrets.json      # API key / cookie（gitignore）
 ├── .cheat-hooks/            # hook 脚本副本
 │   ├── prediction-immutability.sh
+│   ├── prediction_guard.py
 │   ├── session-start.sh
 │   └── log-event.sh
 ├── .claude/settings.json    # 含 cheat-on-content hooks
@@ -180,7 +181,7 @@ bump 是高风险操作——会做 5 步验证（含跨模型独立审）。详
 ├── scripts/                 # **拍前的所有草稿**
 │   └── YYYY-MM-DD_<id>_<short>.md   # cheat-seed 写或用户写
 │
-├── predictions/             # **immutable 预测日志**（hook 保护）
+├── predictions/             # 预测日志（协议上不改预测段；hook 是否被宿主执行未验证）
 │   └── YYYY-MM-DD_<id>_<short>.md   # cheat-predict 写
 │
 └── videos/                  # **拍后才建**（cheat-shoot 创建）

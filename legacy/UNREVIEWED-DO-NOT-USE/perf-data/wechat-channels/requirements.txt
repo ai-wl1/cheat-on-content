@@ -1,0 +1,2 @@
+# Exact pin. Distribution hashes were not added; the files were not fetched here.
+playwright==1.44.0

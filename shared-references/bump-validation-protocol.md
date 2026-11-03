@@ -90,20 +90,13 @@ v2.1  composite = (ER×2.0 + HP×1.5 + MS×1.5 + QL + SR + TS + SAT) / 9.0 × 2.
 3. 计算 Spearman rank correlation；同时检查每对 (i, j) 的相对顺序是否颠倒
 4. 输出对照表：每个样本的 [新 rank, actual rank, delta]
 
-### Step 4：跨模型独立审核（**强制**，除非 escape hatch）
+### Step 4：外部审核（默认不做）
 
-`CROSS_MODEL_AUDIT=true`（默认）时：
-1. 调用 `mcp__llm-chat__chat`，把以下打包发给外部 LLM：
-   - 旧公式 + 新公式
-   - 校准池所有样本的：维度分数、composite（新+旧）、actual_plays、actual_likes、actual_comments、actual_shares
-   - Step 3 的排序对照表
-2. 外部 LLM 独立判定两件事：
-   - 排序一致性是否真的 ≥ THRESHOLD？
-   - 新公式相比旧公式是否解释力更强？
-3. 外部 LLM 必须输出 **PASS** / **REJECT** + ≥ 100 字理由
-4. 本地判定与外部判定**两个都通过**才能进入 Step 5
+默认不调用外部模型。state 里残留的 `CROSS_MODEL_AUDIT=true` 不能代替这一次的确认。
 
-`CROSS_MODEL_AUDIT=false`：跳过外部审核——**仅在离线/无网时使用**。state file 标记 `last_bump_self_audited: true`，`cheat-status` 持续提示用户配置外部审核。
+跳过外部审核时，state file 标记 `last_bump_self_audited: true`。这是正常路径，不是故障。
+
+只有用户在当次回复 `yes, send desensitized audit` 之后，才可以调用 `mcp__llm-chat__chat`。发送前把正文给用户看。正文只包括：两条公式、样本条数、一致条数、pairwise 回归条数，以及不透明编号下的 composite 和名次。不发送标题、正文、链接、账号、评论或原始计数。外部模型与本地判定都 PASS 才能进入 Step 5。调用失败就回到本地判定，不要改发完整校准池。
 
 ### Step 5：升级后清算（Cleanup pass）
 
@@ -149,7 +142,7 @@ bump 落地必须一次性完成：
 ## 反模式（必须拒绝的请求）
 
 - 「跳过校准池重打，直接换公式」 → 拒绝。Step 2 不可跳
-- 「外部 LLM 审核太麻烦，跳过」 → 仅当 `CROSS_MODEL_AUDIT=false` 显式设置时允许
+- 「把完整校准池发给外部模型审一遍」 → 拒绝。默认不外发；当次确认后也只发脱敏最小字段
 - 「这次只调一个权重，不算升级吧」 → 任何系数变化都算。Step 1 必须写完整方程
 - 「反正是我自己用，不用走全套流程」 → 拒绝。这套流程的价值在你**未来回看**时——你将来想问"为什么 v2.3 没采纳"，必须有完整 memo
 - 「能不能把 THRESHOLD 从 4/5 改到 3/5 让这次过了」 → 拒绝。改 THRESHOLD 本身是元层级 bump，需要单独走流程

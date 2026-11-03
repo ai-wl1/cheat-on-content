@@ -122,7 +122,7 @@ allowed-tools: Bash(*), Read, Edit, Glob
 2. 找 `video_folder == 本次发布的 video_folder` 的项 → 移除
 3. 如果没找到 → 警告"buffer 队列里没有这条视频。是直接发布没经过 /cheat-shoot 吗？"——不阻塞，但提示用户下次走 /cheat-shoot 让 buffer 跟踪准确
 
-`last_published_platform_id` 是 cheat-retro 调 adapter 时的输入——如 douyin-session 需要 aweme_id 直接抓数据。
+`last_published_platform_id` 只作记录。不要把它交给 `legacy/UNREVIEWED-DO-NOT-USE/` 里的适配器。登录态平台的复盘用手动粘贴。
 
 `pending_retros` 是待复盘列表——`cheat-status` 会基于这个列表 + RETRO_WINDOW_DAYS 显示"今天该复盘哪些"。
 

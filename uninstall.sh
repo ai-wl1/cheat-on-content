@@ -8,6 +8,10 @@
 # rubric_notes.md, candidates.md, etc.) — those live in your content directories
 # and uninstalling the skill leaves your work intact.
 #
+# Only removes a skill the installer can confirm it created: a symlink whose
+# target is this checkout, or a directory containing .cheat-on-content-managed.
+# Same-named directories without that marker are left in place.
+#
 # Usage:
 #   bash uninstall.sh          # remove Claude Code install (default)
 #   bash uninstall.sh --codex  # remove Codex install
@@ -16,6 +20,19 @@
 # To re-install: bash install.sh
 
 set -euo pipefail
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# shellcheck source=tools/managed_install.sh
+source "$SCRIPT_DIR/tools/managed_install.sh"
+
+skill_source() {
+  local skill="$1"
+  if [[ "$skill" == "cheat-on-content" ]]; then
+    echo "$SCRIPT_DIR"
+  else
+    echo "$SCRIPT_DIR/skills/$skill"
+  fi
+}
 
 SUB_SKILLS=(
   cheat-init
@@ -76,16 +93,17 @@ remove_skills() {
 
   for s in "$@"; do
     local target="$target_dir/$s"
-    if [[ -L "$target" ]]; then
-      rm "$target"
-      echo "  ✓ removed symlink:   $s"
-      REMOVED=$((REMOVED + 1))
-    elif [[ -d "$target" ]]; then
-      rm -rf "$target"
-      echo "  ✓ removed directory: $s"
+    local src_real
+    src_real="$(realpath -- "$(skill_source "$s")")"
+    if [[ ! -e "$target" && ! -L "$target" ]]; then
+      echo "  · not found:         $s (skipped)"
+      continue
+    fi
+    if cheat_remove_confirmed_dest "$target" "$s" "$src_real" "$target_dir"; then
+      echo "  ✓ removed confirmed install: $s"
       REMOVED=$((REMOVED + 1))
     else
-      echo "  · not found:         $s (skipped)"
+      echo "  · skipped (not a confirmed cheat-on-content install, left in place): $s"
     fi
   done
 }

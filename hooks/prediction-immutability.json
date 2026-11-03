@@ -1,14 +1,14 @@
 {
-  "_comment": "cheat-on-content prediction immutability hook. Blocks edits to '## 预测' / '## Prediction' sections in predictions/*.md files. Merge this into your project's .claude/settings.json on /cheat-init.",
+  "_comment": "Attempts to run before tool calls and deny edits to prediction sections under predictions/. Whether the host honors matcher \".*\" and whether exit code 1 cancels the tool are NOT verified. This is not a tamper-proof guarantee. There is no environment-variable bypass.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": ".*",
         "hooks": [
           {
             "type": "command",
             "command": "bash ${CLAUDE_PROJECT_DIR}/.cheat-hooks/prediction-immutability.sh",
-            "timeout": 3,
+            "timeout": 10,
             "async": false
           }
         ]

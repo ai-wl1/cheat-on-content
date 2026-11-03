@@ -176,7 +176,7 @@ enabled_adapters = args.sources or state.get('enabled_trend_sources', ['manual-p
 
 ## Refusals
 
-- 「直接抓抖音热门 feed，不用 cookie」 → 拒绝。抖音反爬极严，无 cookie 必失败；引导到 douyin-session adapter 配置文档
+- 「直接抓抖音热门 feed」 → 拒绝。不要运行 `legacy/UNREVIEWED-DO-NOT-USE/` 里的适配器，也不要索取 cookie。改用用户粘贴的材料
 - 「跳过去重，把所有抓到的都写进去」 → 拒绝。会污染候选池，下次 recommend 时排序失效
 - 「跳过粗打分，直接写 raw 标题」 → 允许（`AUTO_SCORE=false`），但提示用户后续需要 `/cheat-score` 才能进 recommend 池
 

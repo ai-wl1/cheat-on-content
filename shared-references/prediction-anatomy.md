@@ -95,7 +95,7 @@
 
 ### 组件 3：预测主体（Prediction）⭐ immutable 段
 
-这是 immutable 段的核心。`hooks/prediction-immutability.sh` 拦截这段往后到下一个 `##` 的所有 Edit。
+这是协议上不可改的核心段。`hooks/prediction-immutability.sh` 会检查每一个预测段，不会在第一个非预测标题处停住。宿主是否真的取消工具调用**未验证**。
 
 ```markdown
 ## 预测 v1

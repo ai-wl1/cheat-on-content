@@ -72,7 +72,7 @@ allowed-tools: Bash(*), Read, Write, Edit, Glob, Grep, Skill, Task, mcp__llm-cha
     - 用户复盘时大量"随便看了下"的非严肃判断
   - **写在 prediction header 或 cheat-bump 输出时必说明**：本次提议是 default-aligned 还是 judgment-driven，给用户审视依据
 - **THRESHOLD = 0.8** — 新排序与实绩排序一致性阈值（4/5）。这条**写死**——bump 验证的统计刚性
-- **CROSS_MODEL_AUDIT = true** — 调外部 LLM 独立审核。false 仅用于离线
+- **CROSS_MODEL_AUDIT = false** — 默认不调用外部模型。某一次要外发时，必须当次得到用户明确确认，且只发送下面 Phase 4 规定的脱敏字段
 - **REQUIRE_CONFIRM = true** — 落地前要求用户明确"yes, bump"
 
 ## Inputs
@@ -201,46 +201,28 @@ Pairwise no-regression：旧公式做对的所有 pair 在新公式下未颠倒 
 
 `THRESHOLD` 写死在协议里——不允许临时调低（那本身是另一个需要 bump 的元决策）。
 
-### Phase 4: 跨模型独立审核（**强制**，除非 escape hatch）
+### Phase 4: 外部审核（默认关闭）
 
-`CROSS_MODEL_AUDIT=true`（默认）：
+默认**不**调用 `mcp__llm-chat__chat`，也**不**把校准池发出去。state 里旧的 `CROSS_MODEL_AUDIT=true` 不够，每一次都要重新问。
 
-调用 `mcp__llm-chat__chat`：
+只依赖本地判定时：在 state 标 `last_bump_self_audited: true`，然后进入 Phase 5 的用户确认。不要提示用户“去配置外部模型以便把数据发出去”。
 
-```
-prompt:
-你是一个独立审稿人。下面是一个内容创作者准备升级的 rubric 公式。
-请独立判定两件事：
-1. 排序一致性：新公式给样本的排序与实际表现排序，是否真的在 ≥80% 样本上一致？
-2. 解释力：新公式相比旧公式，是否更好地解释了校准池的实绩分布？
+只有用户在**这一次**对话里明确回复 `yes, send desensitized audit` 时，才可以调用外部模型。调用前把将要发送的文本原样给用户看。用户没说这句，就停止，不要自动改口发送。
 
-数据：
-旧公式：(ER×1.5 + SR×1.5 + HP×1.5 + QL + NA + AB + SAT) / 8.5 × 2.0
-新公式：(ER×2.0 + HP×1.5 + MS×1.5 + QL + SR + TS + SAT) / 9.0 × 2.0
+允许发送的只有这些字段：
 
-校准池：
-[Phase 2 重打表的完整 JSON]
+- 旧公式和新公式的算式
+- 样本条数
+- 排序一致的条数、pairwise 回归的条数
+- 表：`sample_1` 这种不透明编号、旧 composite、新 composite、新公式名次、实绩名次
 
-排序对照：
-[Phase 3 表格的完整 JSON]
+禁止发送：标题、稿件、链接、账号、评论、原始播放/点赞/回复/转发数字、Phase 2 或 Phase 3 的完整 JSON。
 
-输出格式：
-- 判定：PASS 或 REJECT
-- 理由：≥100 字
-- 关键风险：[如有，列出新公式的潜在问题]
-```
-
-收到外部 LLM 回复 → 解析判定。
-
-判定逻辑：
-- 本地 PASS + 外部 PASS → 通过，进入 Phase 5
-- 本地 PASS + 外部 REJECT → **视为 REJECT**。冲突意味着至少一方解读不稳定
+判定逻辑（仅在用户已确认发送并且调用成功时）：
+- 本地 PASS + 外部 PASS → 进入 Phase 5
+- 本地 PASS + 外部 REJECT → **视为 REJECT**
 - 本地 REJECT → 已在 Phase 3 终止
-- mcp__llm-chat__chat 不可用 → 优雅降级到 `CROSS_MODEL_AUDIT=false`，state file 标 `last_bump_self_audited: true`
-
-`CROSS_MODEL_AUDIT=false`：
-- 仅依赖本地判定
-- state file 持续标记，cheat-status 持续提示用户"这次 bump 是自审，建议配置 mcp__llm-chat__chat"
+- 外部调用失败 → 停止这次 bump 的外发部分，改回本地判定，并告诉用户没有数据被确认送达。不要为了完成审核而改发更全的数据。
 
 ### Phase 5: 落地 + cleanup pass
 
@@ -448,7 +430,7 @@ baseline: 4.2w 中位数（基于 5 篇校准样本）
 
 1. **5 步不可跳**（仅完整 rubric bump）。任何"先简化跑一下"的请求都拒绝
 2. **THRESHOLD 写死**（仅完整 rubric bump）。不允许动态调整
-3. **跨模型审核是默认**（仅完整 rubric bump）。关闭审核需要在 state file 显式标记
+3. **外部审核默认关闭**（仅完整 rubric bump）。没有当次的 `yes, send desensitized audit`，就不得外发
 4. **cleanup pass 是 bump 的一部分**（仅完整 rubric bump）。不允许 bump 完不清理观察段
 5. **REQUIRE_CONFIRM**（两种模式都要）。最后落地前必须用户明确说 "yes, bump" 或 "yes, recalibrate"
 6. **bucket 重校不动历史预测**。bucket 是预测时语义，事后改写破坏盲度
@@ -457,7 +439,7 @@ baseline: 4.2w 中位数（基于 5 篇校准样本）
 
 - 「跳过校准池重打，直接换公式」 → 拒绝。原则 #2
 - 「跳过 cheat-score-blind sub-agent，主 Claude 直接重打就行」 → 拒绝。bump **不接受**任何 self-scored fallback——sub-agent 不可用 → abort bump，不接受"自审"
-- 「跳过外部 LLM 审核」 → 仅当 `CROSS_MODEL_AUDIT=false` 显式设置
+- 「把完整校准池发给外部模型」 → 拒绝。默认不外发；确认发送时也只发 Phase 4 的脱敏字段
 - 「这次 THRESHOLD 调到 3/5 让它过」 → 拒绝。改 THRESHOLD 是元层级 bump
 - 「保留所有旧观察作为历史」 → 违反原则 #3
 - 「先 bump，cleanup 下次再做」 → 拒绝。cleanup 是 bump 的一部分
@@ -468,7 +450,7 @@ baseline: 4.2w 中位数（基于 5 篇校准样本）
 ## Integration
 
 - 上游：`/cheat-retro` 检测到 ≥3 同向偏差 → 提议跑 `/cheat-bump`
-- 依赖：`mcp__llm-chat__chat`（如配置）+ Task tool（spawn cheat-score-blind）
+- 依赖：Task tool（spawn cheat-score-blind）。外部模型不是默认依赖
 - 修改：
   - `rubric_notes.md`（结构性更新，**绝不**写真实视频名 / 实绩）
   - `rubric-memo.md`（**新**——append Memo 全文，含证据 + 派生证据）

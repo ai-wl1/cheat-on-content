@@ -3,7 +3,9 @@
 # cheat-on-content / install.sh
 #
 # Symlinks the 15 sub-skills into Claude Code and/or Codex skill directories so
-# agents can find them globally. Re-runnable safely (overwrite after confirmation).
+# agents can find them globally. Re-runnable. An existing path is replaced only
+# when it is a symlink to this checkout or a directory marked by this installer.
+# Other same-named directories are left in place.
 #
 # After install, in any content project directory: open Claude Code → say "初始化"
 # → /cheat-init runs the onboarding.
@@ -46,6 +48,8 @@ CODEX_SKILLS=(cheat-on-content "${SUB_SKILLS[@]}")
 
 # Resolve the directory containing THIS script (the source root) — needed early for both modes
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# shellcheck source=tools/managed_install.sh
+source "$SCRIPT_DIR/tools/managed_install.sh"
 
 MODE="symlink"
 TARGET_AGENT="claude"
@@ -76,10 +80,12 @@ if [[ "${1:-}" == "--reinstall-hooks" ]]; then
   echo "  source: $SCRIPT_DIR/hooks/"
   echo ""
 
-  for hook_script in prediction-immutability.sh session-start.sh log-event.sh; do
+  for hook_script in prediction-immutability.sh prediction_guard.py session-start.sh log-event.sh; do
     if [[ -f "$SCRIPT_DIR/hooks/$hook_script" ]]; then
       cp "$SCRIPT_DIR/hooks/$hook_script" "$HOOK_DST/$hook_script"
-      chmod +x "$HOOK_DST/$hook_script"
+      if [[ "$hook_script" == *.sh ]]; then
+        chmod +x "$HOOK_DST/$hook_script"
+      fi
       echo "  ✓ updated: .cheat-hooks/$hook_script"
     else
       echo "  ⚠️  missing in source: hooks/$hook_script (skipped)"
@@ -190,13 +196,20 @@ install_skills() {
   echo "  target: $target_dir/"
   echo ""
 
+  local failed=0
   for s in "$@"; do
-    local src
+    local src src_real dst
     src=$(skill_source "$s")
-    local dst="$target_dir/$s"
+    src_real="$(realpath -- "$src")"
+    dst="$target_dir/$s"
 
     if [[ -e "$dst" || -L "$dst" ]]; then
-      rm -rf "$dst"
+      if ! cheat_remove_confirmed_dest "$dst" "$s" "$src_real" "$target_dir"; then
+        echo "  ❌ 不删除未经确认的路径: $dst"
+        echo "     只有指向本仓库的符号链接，或带 .cheat-on-content-managed 标记的目录，才会被替换。"
+        failed=1
+        continue
+      fi
     fi
 
     if [[ "$MODE" == "symlink" ]]; then
@@ -205,37 +218,30 @@ install_skills() {
     else
       cp -R "$src" "$dst"
       if [[ "$s" == "cheat-on-content" ]]; then
-        rm -rf "$dst/.git"
+        cheat_strip_copied_git "$dst"
       fi
+      cheat_write_marker "$dst" "$s" "$src_real"
       echo "  ✓ copied:    $s"
     fi
   done
+  return "$failed"
 }
 
-WARNED=0
+FAILED=0
 if [[ "$TARGET_AGENT" == "claude" || "$TARGET_AGENT" == "all" ]]; then
-  detect_conflicts "$HOME/.claude/skills" "${CLAUDE_SKILLS[@]}" || WARNED=1
-fi
-if [[ "$TARGET_AGENT" == "codex" || "$TARGET_AGENT" == "all" ]]; then
-  detect_conflicts "$HOME/.codex/skills" "${CODEX_SKILLS[@]}" || WARNED=1
-fi
-
-if [[ $WARNED -eq 1 ]]; then
-  echo ""
-  read -p "Continue and overwrite? (y/N) " -n 1 -r
-  echo ""
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborted."
-    exit 1
-  fi
-fi
-
-if [[ "$TARGET_AGENT" == "claude" || "$TARGET_AGENT" == "all" ]]; then
-  install_skills "Claude Code" "$HOME/.claude/skills" "${CLAUDE_SKILLS[@]}"
+  detect_conflicts "$HOME/.claude/skills" "${CLAUDE_SKILLS[@]}" || true
+  install_skills "Claude Code" "$HOME/.claude/skills" "${CLAUDE_SKILLS[@]}" || FAILED=1
 fi
 
 if [[ "$TARGET_AGENT" == "codex" || "$TARGET_AGENT" == "all" ]]; then
-  install_skills "Codex" "$HOME/.codex/skills" "${CODEX_SKILLS[@]}"
+  detect_conflicts "$HOME/.codex/skills" "${CODEX_SKILLS[@]}" || true
+  install_skills "Codex" "$HOME/.codex/skills" "${CODEX_SKILLS[@]}" || FAILED=1
+fi
+
+if [[ "$FAILED" -ne 0 ]]; then
+  echo ""
+  echo "❌ 有未经确认的同名路径未删除。把那些目录移走后可以重试。"
+  exit 1
 fi
 
 echo ""
